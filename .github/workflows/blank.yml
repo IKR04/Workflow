@@ -1,0 +1,59 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Postman
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Create Results Directory
+        run: mkdir -p results
+        # Ensure 'results' directory is created if it doesn't exist
+
+      - name: Run Postman Collection with Environment 1
+        run: newman run Postman/MCDSE204.postman_collection.json -e Postman/Register.postman_environment.json -r junit,cli --reporter-junit-export results/report-env1.xml
+
+      - name: Run Postman Collection with Environment 2
+        run: newman run Postman/MCDSE204.postman_collection.json -e Postman/Login.postman_environment.json -r junit,cli --reporter-junit-export results/report-env2.xml
+
+      - name: Upload Test Results for Environment 1
+        uses: actions/upload-artifact@v2
+        with:
+          name: postman-test-results-env1
+          path: results/report-env1.xml
+
+      - name: Upload Test Results for Environment 2
+        uses: actions/upload-artifact@v2
+        with:
+          name: postman-test-results-env2
+          path: results/report-env2.xml
